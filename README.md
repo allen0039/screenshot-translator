@@ -16,7 +16,7 @@
 ## 1. 普通用户使用（推荐）
 
 ### 1) 直接运行 EXE
-- 打开：`ScreenshotTranslator.exe`
+- 打开：`dist\ScreenshotTranslator\ScreenshotTranslator.exe`
 - 首次启动进入可视化设置面板。
 
 ### 2) 基本设置
@@ -70,6 +70,38 @@
 - `导入配置`：导入 JSON，若本地已有配置会弹窗让你选：
   - `合并`：按供应商名称合并，同名用导入内容覆盖
   - `覆盖`：用导入内容替换本地供应商列表
+
+---
+
+## 4. 从源码运行（开发/调试）
+
+### 环境要求
+- Windows
+- Python 3.11 或 3.12（不建议 3.14）
+
+### 安装与启动
+```powershell
+cd screenshot-translator
+py -3.12 -m venv .venv312
+.\.venv312\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
+
+---
+
+## 5. 打包 EXE
+
+```powershell
+cd screenshot-translator
+.\.venv312\Scripts\activate
+pip install -r requirements.txt
+pip install pyinstaller
+python -m PyInstaller --noconfirm --clean ScreenshotTranslator.spec
+```
+
+产物路径：
+- `dist\ScreenshotTranslator\ScreenshotTranslator.exe`
 
 ---
 
