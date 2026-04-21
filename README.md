@@ -73,38 +73,6 @@
 
 ---
 
-## 4. 从源码运行（开发/调试）
-
-### 环境要求
-- Windows
-- Python 3.11 或 3.12（不建议 3.14）
-
-### 安装与启动
-```powershell
-cd D:\Agent\jietufanyi
-py -3.12 -m venv .venv312
-.\.venv312\Scripts\activate
-pip install -r requirements.txt
-python main.py
-```
-
----
-
-## 5. 打包 EXE
-
-```powershell
-cd D:\Agent\jietufanyi
-.\.venv312\Scripts\activate
-pip install -r requirements.txt
-pip install pyinstaller
-python -m PyInstaller --noconfirm --clean ScreenshotTranslator.spec
-```
-
-产物路径：
-- `dist\ScreenshotTranslator\ScreenshotTranslator.exe`
-
----
-
 ## 6. 配置文件位置
 
 - `%APPDATA%\ScreenshotTranslator\config.json`
