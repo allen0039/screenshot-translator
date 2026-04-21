@@ -16,7 +16,7 @@
 ## 1. 普通用户使用（推荐）
 
 ### 1) 直接运行 EXE
-- 打开：`dist\ScreenshotTranslator\ScreenshotTranslator.exe`
+- 打开：`ScreenshotTranslator.exe`
 - 首次启动进入可视化设置面板。
 
 ### 2) 基本设置
