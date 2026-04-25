@@ -82,7 +82,7 @@ except ModuleNotFoundError as ex:
 
 
 APP_NAME = "截图翻译工具"
-APP_VERSION = "v1.0.6"
+APP_VERSION = "v1.0.7"
 APP_TITLE = f"{APP_NAME} {APP_VERSION}"
 CONFIG_DIR = os.path.join(os.environ.get("APPDATA", os.getcwd()), "ScreenshotTranslator")
 CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
@@ -209,14 +209,17 @@ class ConfigStore:
                 save_dir=data.get("save_dir", os.path.join(os.path.expanduser("~"), "Pictures", "Screenshots")),
                 theme=data.get("theme", "dark"),
             )
-        except Exception:
+        except Exception as ex:
+            QMessageBox.warning(None, "配置读取失败", f"配置文件读取失败，将使用默认配置。\n\n路径：{CONFIG_PATH}\n错误：{ex}")
             return AppConfig()
 
     @staticmethod
     def save(config: AppConfig):
         os.makedirs(CONFIG_DIR, exist_ok=True)
-        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        temp_path = f"{CONFIG_PATH}.tmp"
+        with open(temp_path, "w", encoding="utf-8") as f:
             json.dump(asdict(config), f, ensure_ascii=False, indent=2)
+        os.replace(temp_path, CONFIG_PATH)
 
 
 class ConfirmDialog(QDialog):
@@ -654,11 +657,7 @@ class MainController(QObject):
         self.btn_rename_provider = QPushButton("重命名")
         self.btn_add_provider = QPushButton("新增")
         self.btn_remove_provider = QPushButton("移除")
-        
-        self.fetched_model_list = QListWidget()
-        self.fetched_model_list.setSelectionMode(QListWidget.MultiSelection)
-        self.fetched_model_list.setFixedHeight(100)
-        
+
         self.target_lang_input = QComboBox()
         self.target_lang_input.setEditable(True)
         common_langs = [
@@ -1106,6 +1105,11 @@ class MainController(QObject):
 
     def export_providers_config(self):
         providers = self._normalize_providers(self.config.providers)
+        export_providers = []
+        for item in providers:
+            sanitized = dict(item)
+            sanitized["api_key"] = ""
+            export_providers.append(sanitized)
         default_name = f"providers_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         path, _ = QFileDialog.getSaveFileName(
             self.main_window,
@@ -1122,12 +1126,16 @@ class MainController(QObject):
             "version": 1,
             "provider_name": self.provider_input.currentText().strip() or self.config.provider_name,
             "provider_template": self.provider_template_input.currentText().strip() or self.config.provider_template,
-            "providers": providers,
+            "providers": export_providers,
         }
         with open(path, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
         self.status_label.setText(f"状态：供应商配置已导出到 {path}")
-        QMessageBox.information(self.main_window, "导出成功", f"已导出到：\n{path}")
+        QMessageBox.information(
+            self.main_window,
+            "导出成功",
+            f"已导出到：\n{path}\n\n为保护隐私，导出文件中的 API Key 已清空。导入后请手动填写。",
+        )
 
     def import_providers_config(self):
         path, _ = QFileDialog.getOpenFileName(
@@ -1512,7 +1520,7 @@ class MainController(QObject):
             )
         if "401" in lower or "invalid api key" in lower or "incorrect api key" in lower:
             return "API Key 无效，请在软件里重新填写后保存。"
-        if "404" in lower or "model" in lower and "not found" in lower:
+        if ("404" in lower) or ("model" in lower and "not found" in lower):
             return "模型名称不存在，请在软件里检查模型名称是否与接口服务商提供的一致。"
         if "timeout" in lower:
             return "请求超时，请检查网络连接，或稍后重试。"
@@ -1920,10 +1928,6 @@ class MainController(QObject):
 
             text_rect = rect.adjusted(2, 1, -2, -1)
             self._draw_text_fit(painter, text_rect, text, vertical_center=True)
-            print(
-                f"[render] idx={idx} original_rect=({rect.left():.1f},{rect.top():.1f},{rect.width():.1f},{rect.height():.1f}) "
-                f"target_rect=({text_rect.left():.1f},{text_rect.top():.1f},{text_rect.width():.1f},{text_rect.height():.1f})"
-            )
 
         painter.end()
         return out

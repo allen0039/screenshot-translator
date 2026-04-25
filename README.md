@@ -17,6 +17,7 @@
 
 ### 1) 直接运行 EXE
 - 打开：`dist\ScreenshotTranslator\ScreenshotTranslator.exe`
+- **注意：必须保留整个 `ScreenshotTranslator` 目录结构（包含 `_internal` 子目录），不要只单独拷贝 exe。**
 - 首次启动进入可视化设置面板。
 
 ### 2) 基本设置
@@ -90,18 +91,40 @@ python main.py
 
 ---
 
-## 5. 打包 EXE
+## 5. 打包与发布（两套方案）
+
+### 方案 A：单文件 EXE（下载即用）
+```powershell
+cd screenshot-translator
+.\.venv312\Scripts\activate
+pip install -r requirements.txt
+build_onefile.bat
+```
+
+产物：
+- `dist\ScreenshotTranslator-OneFile.exe`
+
+> 说明：单文件 EXE 首次启动可能稍慢；若被杀毒软件误报，请加入白名单。
+
+### 方案 B：安装包 EXE（推荐普通用户）
+先准备 Inno Setup 6（安装后自带 `ISCC.exe`），再执行：
 
 ```powershell
 cd screenshot-translator
 .\.venv312\Scripts\activate
 pip install -r requirements.txt
-pip install pyinstaller
-python -m PyInstaller --noconfirm --clean ScreenshotTranslator.spec
+build_release.bat
 ```
 
-产物路径：
-- `dist\ScreenshotTranslator\ScreenshotTranslator.exe`
+产物：
+- `dist\ScreenshotTranslator\ScreenshotTranslator.exe`（目录版）
+- `dist\ScreenshotTranslator-OneFile.exe`（单文件版）
+- `dist\ScreenshotTranslator-Setup-v1.0.7.exe`（安装包，若检测到 Inno Setup）
+
+### GitHub Release 发布建议
+- 上传 `ScreenshotTranslator-OneFile.exe`（给想“下载即用”的用户）
+- 上传 `ScreenshotTranslator-Setup-v1.0.7.exe`（给普通用户，推荐）
+- 可选上传目录版 zip（高级用户排障用）
 
 ---
 
@@ -119,3 +142,29 @@ python -m PyInstaller --noconfirm --clean ScreenshotTranslator.spec
 - 翻译失败：检查模板与 API 地址是否匹配、密钥是否正确
 - OpenAI 获取模型失败：确认接口支持 `models.list`
 - Libre/Argos 无响应：确认服务已启动且地址可访问
+- 启动报错 `Failed to load Python DLL ... _internal\\python312.dll`：
+  - 请确认你是解压并运行**完整目录** `dist\ScreenshotTranslator`，而不是只运行单独的 exe
+  - 请确认 `ScreenshotTranslator.exe` 同级存在 `_internal\python312.dll`
+  - 若文件被杀毒软件隔离，请恢复并将该目录加入白名单后重试
+  - 仍失败时，请安装/修复 Microsoft Visual C++ Redistributable (x64, 2015-2022)
+
+---
+
+## 8. 公开发布前隐私检查
+
+- 不要上传 `%APPDATA%\ScreenshotTranslator\config.json`
+- 导出的供应商配置 JSON 已默认清空 `api_key`，导入后需手动填写密钥
+- 不要把 `.env`、`.claude/`、`dist/`、`build/` 提交到仓库
+
+### 发布前命令检查（可直接复制）
+
+```powershell
+# 1) 检查工作区中是否有可疑密钥
+Get-ChildItem -Recurse -File | Select-String -Pattern 'sk-[A-Za-z0-9]{20,}|Bearer\s+[A-Za-z0-9\-_]{20,}'
+
+# 2) 检查暂存区是否包含敏感文件
+git diff --cached --name-only | Select-String -Pattern '\.env$|config\.json$|\.claude/'
+
+# 3) 检查仓库里是否还有明文 api_key 值（排除空字符串）
+Get-ChildItem -Recurse -Include *.py,*.json | Select-String -Pattern '"api_key"\s*:\s*".+"'
+```

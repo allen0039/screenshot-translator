@@ -39,14 +39,14 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [3/3] Building onedir EXE...
-pyinstaller --noconfirm --clean --windowed --noupx --name ScreenshotTranslator --collect-data rapidocr_onnxruntime main.py
+echo [3/3] Building onefile EXE...
+pyinstaller --noconfirm --clean --windowed --onefile --noupx --name ScreenshotTranslator-OneFile --collect-data rapidocr_onnxruntime main.py
 if errorlevel 1 (
-  echo [ERROR] onedir build failed.
+  echo [ERROR] onefile build failed.
   if not "%NO_PAUSE%"=="1" pause
   exit /b 1
 )
 
 echo.
-echo Build done: dist\ScreenshotTranslator\ScreenshotTranslator.exe
+echo Build done: dist\ScreenshotTranslator-OneFile.exe
 if not "%NO_PAUSE%"=="1" pause
