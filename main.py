@@ -82,7 +82,7 @@ except ModuleNotFoundError as ex:
 
 
 APP_NAME = "截图翻译工具"
-APP_VERSION = "v1.0.7"
+APP_VERSION = "v1.0.8"
 APP_TITLE = f"{APP_NAME} {APP_VERSION}"
 CONFIG_DIR = os.path.join(os.environ.get("APPDATA", os.getcwd()), "ScreenshotTranslator")
 CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")

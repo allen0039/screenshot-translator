@@ -1,5 +1,5 @@
 #define MyAppName "截图翻译工具"
-#define MyAppVersion "1.0.7"
+#define MyAppVersion "1.0.8"
 #define MyAppExeName "ScreenshotTranslator.exe"
 
 [Setup]
